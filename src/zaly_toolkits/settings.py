@@ -8,6 +8,7 @@
 #   DB_<ALIAS>_PASSWORD      (opcional en SQLSERVER -> Trusted Connection)
 #   DB_<ALIAS>_ODBC_DRIVER   (solo SQLSERVER)
 #   DB_<ALIAS>_DB_NAME       (opcional)
+#   DB_<ALIAS>_DB_INDEX      (opcional, solo REDIS -> numero de BD, default 0)
 #
 # Ej: get_db_config("QUANTA") lee DB_QUANTA_ENGINE, DB_QUANTA_HOST, etc.
 # Para agregar una BD nueva basta con definir sus variables; no hay que
@@ -39,6 +40,7 @@ class _DBAliasSettings(BaseSettings):
     password: Optional[str] = None
     odbc_driver: Optional[str] = None
     db_name: Optional[str] = None
+    db_index: Optional[int] = None
 
 
 def get_db_config(alias: str) -> dict:

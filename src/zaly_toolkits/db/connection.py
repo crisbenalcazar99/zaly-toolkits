@@ -13,13 +13,18 @@ OBLIGATORIOS = {
     # db_name es opcional en ambos motores: si no se envía, se conecta a la
     # base de datos por defecto del login/servidor.
     "SQLSERVER": {"host", "port", "odbc_driver"},
+    # user/password son opcionales en REDIS (auth puede estar deshabilitada).
+    # db_index es opcional: si no se envía, se conecta a la BD 0.
+    "REDIS": {"host", "port"},
 }
 
 DEFAULT_CONFIG_ENGINE = {
     "POSTGRES": {"engine": "postgresql", "driver": "psycopg2"},
     "SQLSERVER": {"engine": "mssql", "driver": "pyodbc"},
 }
-ENGINES_SOPORTADOS = DEFAULT_CONFIG_ENGINE.keys()
+# REDIS no usa el esquema engine+driver de SQLAlchemy (no tiene dialecto),
+# por eso no vive en DEFAULT_CONFIG_ENGINE; se agrega aparte a los soportados.
+ENGINES_SOPORTADOS = {*DEFAULT_CONFIG_ENGINE.keys(), "REDIS"}
 
 def build_connection_url(config: dict) -> str:
     """Punto único de construcción del string de conexión SQLAlchemy.
@@ -55,6 +60,8 @@ def build_connection_url(config: dict) -> str:
         return _build_postgres_url(config)
     if engine_database == "SQLSERVER":
         return _build_sqlserver_url(config)
+    if engine_database == "REDIS":
+        return _build_redis_url(config)
     return None
 
 
@@ -95,3 +102,23 @@ def _build_sqlserver_url(config: dict) -> str:
         f"{engine['engine']}+{engine['driver']}://{credenciales}{host}:{port}/{db_name}"
         f"?driver={odbc_driver_encoded}&TrustServerCertificate=yes{auth_query}"
     )
+
+
+def _build_redis_url(config: dict) -> str:
+    """Arma la URL de Redis. Asume que OBLIGATORIOS ya fue validado.
+
+    Produce: redis://[user:pass@]host:port/db_index
+    Sin "password" no se envían credenciales (auth deshabilitada en el server).
+    """
+    host = config["host"]
+    port = config["port"]
+    db_index = config.get("db_index") or 0
+    password = config.get("password")
+
+    if password:
+        user = config.get("user", "")
+        credenciales = f"{user}:{password}@"
+    else:
+        credenciales = ""
+
+    return f"redis://{credenciales}{host}:{port}/{db_index}"
