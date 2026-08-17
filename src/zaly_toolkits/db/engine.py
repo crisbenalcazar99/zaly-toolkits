@@ -5,8 +5,10 @@
 #
 #   settings.py  →  connection.py  →  engine.py (get_engine/get_session_maker)
 #
-# Desde código de negocio NO se debe importar este módulo directamente;
-# usar session.py::get_session() que agrega el context manager (commit/rollback/close).
+# get_engine() y get_session_maker() son parte de la API pública del toolkit
+# (se exportan desde db/__init__.py), para quien necesite una conexión cruda
+# o una sesión sin el commit/rollback/close automático. Para el caso común
+# preferir session.py::get_session(), que agrega ese context manager.
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -42,8 +44,10 @@ def get_engine(prefix: str):
 def get_session_maker(prefix: str):
     """Devuelve el sessionmaker (singleton por alias) para el prefijo dado.
 
-    Úsalo cuando necesites instanciar sesiones manualmente.
-    Para la mayoría de los casos prefiere session.py::get_session().
+    Úsalo cuando necesites una sesión manual, con control total sobre cuándo
+    hacer commit/rollback/close (ej. transacciones que abarcan varias
+    funciones). Para el caso común, con ciclo de vida automático, preferir
+    session.py::get_session().
     """
     if prefix not in _session_cache:
         _session_cache[prefix] = sessionmaker(

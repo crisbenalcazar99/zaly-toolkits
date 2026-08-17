@@ -1,8 +1,10 @@
 # session.py — Context manager de sesiones para código de negocio.
 #
-# Es la única interfaz que los módulos externos deben importar para
-# interactuar con la base de datos. Garantiza commit, rollback y cierre
-# automático sin que el llamador tenga que gestionar el ciclo de vida.
+# Es la opción recomendada para el caso común: garantiza commit, rollback y
+# cierre automático sin que el llamador tenga que gestionar el ciclo de vida.
+# Para casos que necesiten control manual (ej. una transacción que abarca
+# varias funciones), usar engine.py::get_session_maker() o get_engine()
+# directo — ambos son parte de la API pública del toolkit (ver db/__init__.py).
 #
 # Para agregar una nueva BD basta con definir sus variables de entorno
 # (DB_<ALIAS>_HOST, DB_<ALIAS>_PORT, etc. — ver settings.py) — no hay que
